@@ -76,3 +76,7 @@ clean:
 .PHONY: docs
 docs:
 	cargo doc --no-deps --document-private-items --open --features=esp32s3,use_async
+
+.PHONY: clippy
+clippy:
+	cargo clippy --features=esp32s3,use_async -- -D clippy::pedantic

@@ -51,6 +51,9 @@ impl<I2C: I2cBound> Cst328<I2C> {
         Self { i2c }
     }
 
+    /// # Errors
+    ///
+    /// Will return `Err` upon I2C error.
     pub async fn read_touch(&mut self) -> Result<TouchData, Error<I2C::Error>> {
         let mut buf = [0u8; 32];
 
@@ -59,15 +62,18 @@ impl<I2C: I2cBound> Cst328<I2C> {
             .await
             .map_err(Error::I2c)?;
 
-        parse_touch_data(&buf).map_err(|_| Error::InvalidData)
+        Ok(parse_touch_data(&buf))
     }
 
+    /// # Errors
+    ///
+    /// Will return `Err` upon I2C error.
     pub async fn ping(&mut self) -> Result<(), Error<I2C::Error>> {
         self.i2c.write(I2C_ADDR, &[]).await.map_err(Error::I2c)
     }
 }
 
-fn parse_touch_data(buf: &[u8]) -> Result<TouchData, ()> {
+fn parse_touch_data(buf: &[u8]) -> TouchData {
     let num_points = (buf[0x05] & 0x0F).min(5);
 
     let mut data = TouchData {
@@ -77,8 +83,8 @@ fn parse_touch_data(buf: &[u8]) -> Result<TouchData, ()> {
 
     for i in 0..num_points as usize {
         let base = i * 6;
-        let x = ((buf[base + 0x01] as u16) << 4) | (buf[base + 0x03] as u16 & 0x0F);
-        let y = ((buf[base + 0x02] as u16) << 4) | (buf[base + 0x03] as u16 >> 4);
+        let x = (u16::from(buf[base + 0x01]) << 4) | (u16::from(buf[base + 0x03]) & 0x0F);
+        let y = (u16::from(buf[base + 0x02]) << 4) | (u16::from(buf[base + 0x03]) >> 4);
 
         data.points[i] = TouchPoint {
             id: buf[base] >> 4,
@@ -88,5 +94,5 @@ fn parse_touch_data(buf: &[u8]) -> Result<TouchData, ()> {
         };
     }
 
-    Ok(data)
+    data
 }
