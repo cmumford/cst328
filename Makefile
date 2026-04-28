@@ -80,3 +80,7 @@ docs:
 .PHONY: clippy
 clippy:
 	cargo clippy --features=esp32s3,use_async -- -D clippy::pedantic
+
+.PHONY: machete
+machete:
+	cargo machete --with-metadata
