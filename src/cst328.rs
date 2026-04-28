@@ -1,9 +1,19 @@
+#[cfg(feature = "use_sync")]
 use embedded_hal::i2c::SevenBitAddress;
+#[cfg(feature = "use_async")]
+use embedded_hal_async::i2c::SevenBitAddress;
 
 const I2C_ADDR: SevenBitAddress = 0x15;
 
+#[cfg(feature = "use_sync")]
 #[derive(Debug)]
 pub enum Error<E: embedded_hal::i2c::Error> {
+    I2c(E),
+    InvalidData,
+}
+#[cfg(feature = "use_async")]
+#[derive(Debug)]
+pub enum Error<E: embedded_hal_async::i2c::Error> {
     I2c(E),
     InvalidData,
 }
