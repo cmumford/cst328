@@ -1,0 +1,23 @@
+{
+    "editor.formatOnSave": true,
+    "[rust]": {
+        "editor.defaultFormatter": "rust-lang.rust-analyzer"
+    },
+    "rust-analyzer.cargo.allTargets": false,
+    "rust-analyzer.cargo.target": "riscv32imac-unknown-none-elf",
+    "rust-analyzer.cargo.features": [
+        "esp32c6",
+        "use_async",
+    ],
+    "rust-analyzer.check.command": "clippy",
+    "rust-analyzer.server.extraEnv": {
+        "RUSTUP_TOOLCHAIN": "stable"
+    },
+    "rust-analyzer.check.extraEnv": {
+        "RUSTUP_TOOLCHAIN": "esp"
+    },
+    "rust-analyzer.cargo.extraEnv": {
+        "RUSTUP_TOOLCHAIN": "esp"
+    },
+    "makefile.configureOnOpen": false,
+}
