@@ -2,7 +2,7 @@
 
 mod cst328;
 
-pub use cst328::{Error, TouchData, TouchPoint};
+pub use cst328::{Error, TouchData, TouchPoint, reset};
 
 #[cfg(not(any(feature = "use_sync", feature = "use_async")))]
 compile_error!(

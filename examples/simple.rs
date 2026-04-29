@@ -9,6 +9,8 @@
 use cst328::Cst328;
 use esp_hal::{
     clock::CpuClock,
+    delay::Delay,
+    gpio::{Level, Output, OutputConfig},
     i2c::master::I2c,
     main,
     time::{Duration, Instant, Rate},
@@ -35,9 +37,11 @@ fn main() -> ! {
         if #[cfg(feature = "esp32c6")] {
             let sda_gpio = peripherals.GPIO15;
             let scl_gpio = peripherals.GPIO23;
+            let rst_gpio = peripherals.GPIO11;
         } else {
             let sda_gpio = peripherals.GPIO9;
             let scl_gpio = peripherals.GPIO8;
+            let rst_gpio = peripherals.GPIO11;
         }
     }
 
@@ -52,6 +56,12 @@ fn main() -> ! {
 
     let mut dev = Cst328::new(i2c);
 
+    let mut rst_pin = Output::new(rst_gpio, Level::High, OutputConfig::default());
+    let mut delay = Delay::new();
+    match cst328::reset(&mut rst_pin, &mut delay) {
+        Ok(()) => info!("Reset OK"),
+        Err(e) => info!("Reset failed: {e:?}"),
+    }
     match dev.ping() {
         Ok(()) => info!("Ping OK"),
         Err(e) => info!("Ping failed: {e:?}"),

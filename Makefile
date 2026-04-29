@@ -63,7 +63,7 @@ examples-all:examples-sync examples-async
 
 .PHONY: flash-simple-esp32c6
 flash-simple-esp32c6:
-	cargo espflash flash --example simple --monitor --baud=921600 --target riscv32imac-unknown-none-elf $(RELEASE) --features=esp32c6
+	cargo espflash flash --example simple --monitor --baud=921600 --target riscv32imac-unknown-none-elf $(RELEASE) --features=esp32c6,use_sync
 
 .PHONY: flash-simple-esp32c6-async
 flash-simple-esp32c6-async:

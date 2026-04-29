@@ -8,8 +8,13 @@
 
 use cst328::Cst328;
 use embassy_executor::Spawner;
-use embassy_time::Timer;
-use esp_hal::{clock::CpuClock, i2c::master::I2c, time::Rate};
+use embassy_time::{Delay, Timer};
+use esp_hal::{
+    clock::CpuClock,
+    gpio::{Level, Output, OutputConfig},
+    i2c::master::I2c,
+    time::Rate,
+};
 use log::{LevelFilter, info};
 
 // This creates a default app-descriptor required by the esp-idf bootloader.
@@ -32,9 +37,11 @@ async fn main(_spawner: Spawner) -> ! {
         if #[cfg(feature = "esp32c6")] {
             let sda_gpio = peripherals.GPIO15;
             let scl_gpio = peripherals.GPIO23;
+            let rst_gpio = peripherals.GPIO11;
         } else {
             let sda_gpio = peripherals.GPIO9;
             let scl_gpio = peripherals.GPIO8;
+            let rst_gpio = peripherals.GPIO11;
         }
     }
 
@@ -49,6 +56,13 @@ async fn main(_spawner: Spawner) -> ! {
     .with_sda(sda_gpio);
 
     let mut dev = Cst328::new(i2c);
+
+    let mut rst_pin = Output::new(rst_gpio, Level::High, OutputConfig::default());
+    let mut delay = Delay {};
+    match cst328::reset(&mut rst_pin, &mut delay) {
+        Ok(()) => info!("Reset OK"),
+        Err(e) => info!("Reset failed: {e:?}"),
+    }
 
     match dev.ping().await {
         Ok(()) => info!("Ping OK"),

@@ -1,5 +1,7 @@
 use cfg_if::cfg_if;
 
+use embedded_hal::{delay::DelayNs, digital::OutputPin};
+
 cfg_if! {
     if #[cfg(feature = "use_sync")] {
         use embedded_hal::i2c::{Error as HalError, SevenBitAddress};
@@ -9,6 +11,8 @@ cfg_if! {
 }
 
 const I2C_ADDR: SevenBitAddress = 0x1a;
+const CST328_RESET_DURATION_LOW_MS: u32 = 10; // TRST: Actually 0.1 ms per datasheet.
+const CST328_RESET_DURATION_HIGH_MS: u32 = 300; // TRON: Initialization time after reset.
 
 #[derive(Debug)]
 pub enum Error<E: HalError> {
@@ -104,4 +108,16 @@ fn parse_touch_data(buf: &[u8]) -> TouchData {
     }
 
     data
+}
+
+pub fn reset<O, D>(rst: &mut O, delay: &mut D) -> Result<(), O::Error>
+where
+    O: OutputPin,
+    D: DelayNs,
+{
+    rst.set_low()?;
+    delay.delay_ms(CST328_RESET_DURATION_LOW_MS);
+    rst.set_high()?;
+    delay.delay_ms(CST328_RESET_DURATION_HIGH_MS);
+    Ok(())
 }
