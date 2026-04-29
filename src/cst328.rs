@@ -1,19 +1,17 @@
-#[cfg(feature = "use_sync")]
-use embedded_hal::i2c::SevenBitAddress;
-#[cfg(feature = "use_async")]
-use embedded_hal_async::i2c::SevenBitAddress;
+use cfg_if::cfg_if;
+
+cfg_if! {
+    if #[cfg(feature = "use_sync")] {
+        use embedded_hal::i2c::{Error as HalError, SevenBitAddress};
+    } else if #[cfg(feature = "use_async")] {
+        use embedded_hal_async::i2c::{Error as HalError, SevenBitAddress};
+    }
+}
 
 const I2C_ADDR: SevenBitAddress = 0x15;
 
-#[cfg(feature = "use_sync")]
 #[derive(Debug)]
-pub enum Error<E: embedded_hal::i2c::Error> {
-    I2c(E),
-    InvalidData,
-}
-#[cfg(feature = "use_async")]
-#[derive(Debug)]
-pub enum Error<E: embedded_hal_async::i2c::Error> {
+pub enum Error<E: HalError> {
     I2c(E),
     InvalidData,
 }
@@ -32,15 +30,16 @@ pub struct TouchData {
     pub points: [TouchPoint; 5],
 }
 
-#[cfg(feature = "use_async")]
-pub trait I2cBound: embedded_hal_async::i2c::I2c {}
-#[cfg(feature = "use_async")]
-impl<T: embedded_hal_async::i2c::I2c> I2cBound for T {}
-
-#[cfg(feature = "use_sync")]
-pub trait I2cBound: embedded_hal::i2c::I2c {}
-#[cfg(feature = "use_sync")]
-impl<T: embedded_hal::i2c::I2c> I2cBound for T {}
+// One single I2cBound definition (no duplicated traits)
+cfg_if! {
+    if #[cfg(feature = "use_sync")] {
+        pub trait I2cBound: embedded_hal::i2c::I2c {}
+        impl<T: embedded_hal::i2c::I2c> I2cBound for T {}
+    } else if #[cfg(feature = "use_async")] {
+        pub trait I2cBound: embedded_hal_async::i2c::I2c {}
+        impl<T: embedded_hal_async::i2c::I2c> I2cBound for T {}
+    }
+}
 
 #[maybe_async_cfg::maybe(
     idents(Cst328),
