@@ -8,7 +8,7 @@ cfg_if! {
     }
 }
 
-const I2C_ADDR: SevenBitAddress = 0x15;
+const I2C_ADDR: SevenBitAddress = 0x1a;
 
 #[derive(Debug)]
 pub enum Error<E: HalError> {
