@@ -8,14 +8,14 @@ readme = "README.md"
 keywords = ["touch", "driver", "hynitron"]
 
 [dependencies]
+bilge = "0.3.0"
+cfg-if = "1.0.4"
 embedded-hal = "1.0"
-cfg-if = "1"
 embedded-hal-async = { version = "1.0", optional = true }
 log = "0.4"
 maybe-async-cfg = "0.2.5"
 
 [dev-dependencies]
-cfg-if = "1.0"
 embassy-executor = { version = "0.10.0" }
 embassy-time = { version = "0.5.1", features = ["generic-queue-8"] }
 esp-bootloader-esp-idf = "0.5.0"

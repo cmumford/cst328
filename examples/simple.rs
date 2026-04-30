@@ -6,7 +6,7 @@
     holding buffers for the duration of a data transfer."
 )]
 
-use cst328::Cst328;
+use cst328::{Cst328, Mode};
 use esp_hal::{
     clock::CpuClock,
     delay::Delay,
@@ -66,7 +66,18 @@ fn main() -> ! {
         Ok(()) => info!("Ping OK"),
         Err(e) => info!("Ping failed: {e:?}"),
     }
-
+    match dev.set_mode(Mode::DebugInfo) {
+        Ok(()) => info!("Entered debug info mode"),
+        Err(e) => info!("Failed to enter debug info mode: {e:?}"),
+    }
+    match dev.read_debug_info() {
+        Ok(debug_info) => info!("{debug_info:?}"),
+        Err(e) => info!("Failed to read Debug Info: {e:?}"),
+    }
+    match dev.set_mode(Mode::Normal) {
+        Ok(()) => info!("Entered normal mode"),
+        Err(e) => info!("Failed to enter normal mode: {e:?}"),
+    }
     loop {
         info!("Waiting...");
         let delay_start = Instant::now();
