@@ -78,7 +78,7 @@ const I2C_ADDR: SevenBitAddress = 0x1a;
 const CST328_RESET_DURATION_LOW_MS: u32 = 10; // TRST: Actually 0.1 ms per datasheet.
 const CST328_RESET_DURATION_HIGH_MS: u32 = 300; // TRON: Initialization time after reset.
 
-macro_rules! map_struct {
+macro_rules! map_info_register {
     ($buffer:expr, $offset:expr, $type:ty) => {{
         let chunk: [u8; 4] = $buffer[$offset..$offset + 4]
             .try_into()
@@ -141,18 +141,19 @@ impl<I2C: I2cBound> Cst328<I2C> {
             .write_read(I2C_ADDR, &addr, &mut response)
             .await
             .map_err(Error::I2c)?;
-        let info1 = map_struct!(response, 0, Info1);
-        let resolutions: Resolutions = map_struct!(response, 4, Resolutions);
-        let info3 = map_struct!(response, 8, Info3);
+        let info1 = map_info_register!(response, 0, Info1);
+        let resolutions: Resolutions = map_info_register!(response, 4, Resolutions);
+        let info3 = map_info_register!(response, 8, Info3);
 
+        // and the last three are contiguous.
         let addr = (Register::ChipInfo as u16).to_be_bytes();
         self.i2c
             .write_read(I2C_ADDR, &addr, &mut response)
             .await
             .map_err(Error::I2c)?;
-        let chip_info = map_struct!(response, 0, ChipInfo);
-        let firmware_version = map_struct!(response, 4, FirmwareVersion);
-        let firmware_checksum = map_struct!(response, 8, FirmwareChecksum);
+        let chip_info = map_info_register!(response, 0, ChipInfo);
+        let firmware_version = map_info_register!(response, 4, FirmwareVersion);
+        let firmware_checksum = map_info_register!(response, 8, FirmwareChecksum);
 
         if info3.firmware_checksum() != 0xCACA {
             return Err(Error::InvalidData);
