@@ -91,7 +91,7 @@ pub struct FirmwareChecksum {
 
 #[bitsize(40)]
 #[derive(FromBits, DebugBits, PartialEq)]
-pub struct Finger {
+pub struct FingerEntry {
     pub pressure: u8,
     pub y_pos_low: u4,  // Low 4 bits of Y position.
     pub x_pos_low: u4,  // Low 4 bits of X position.

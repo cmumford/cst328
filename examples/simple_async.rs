@@ -6,7 +6,7 @@
     holding buffers for the duration of a data transfer."
 )]
 
-use cst328::Cst328;
+use cst328::{Cst328, Mode};
 use embassy_executor::Spawner;
 use embassy_time::{Delay, Timer};
 use esp_hal::{
@@ -15,7 +15,7 @@ use esp_hal::{
     i2c::master::I2c,
     time::Rate,
 };
-use log::{LevelFilter, info};
+use log::{LevelFilter, error, info};
 
 // This creates a default app-descriptor required by the esp-idf bootloader.
 // For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
@@ -63,12 +63,26 @@ async fn main(_spawner: Spawner) -> ! {
         Ok(()) => info!("Reset OK"),
         Err(e) => info!("Reset failed: {e:?}"),
     }
-
     match dev.ping().await {
         Ok(()) => info!("Ping OK"),
         Err(e) => info!("Ping failed: {e:?}"),
     }
-
+    match dev.set_mode(Mode::DebugInfo).await {
+        Ok(()) => info!("Entered debug info mode"),
+        Err(e) => error!("Failed to enter debug info mode: {e:?}"),
+    }
+    match dev.read_debug_info_new().await {
+        Ok(debug_info) => info!("New: {debug_info:?}"),
+        Err(e) => error!("Failed to read Debug Info: {e:?}"),
+    }
+    match dev.set_mode(Mode::Normal).await {
+        Ok(()) => info!("Entered normal mode"),
+        Err(e) => error!("Failed to enter normal mode: {e:?}"),
+    }
+    match dev.read_touch_data().await {
+        Ok(touch_data) => info!("Touch Data: {touch_data:?}"),
+        Err(e) => error!("Failed to read Touch Data: {e:?}"),
+    }
     loop {
         info!("Waiting...");
         Timer::after(embassy_time::Duration::from_millis(1_000)).await;

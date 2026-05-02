@@ -78,6 +78,10 @@ fn main() -> ! {
         Ok(()) => info!("Entered normal mode"),
         Err(e) => error!("Failed to enter normal mode: {e:?}"),
     }
+    match dev.read_touch_data() {
+        Ok(touch_data) => info!("Touch Data: {touch_data:?}"),
+        Err(e) => error!("Failed to read Touch Data: {e:?}"),
+    }
     loop {
         info!("Waiting...");
         let delay_start = Instant::now();

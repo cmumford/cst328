@@ -1,6 +1,7 @@
 use crate::registers::{
-    ChipInfo, FirmwareChecksum, FirmwareVersion, Info1, Info3, Register, Resolutions,
+    ChipInfo, FingerEntry, FirmwareChecksum, FirmwareVersion, Info1, Info3, Register, Resolutions,
 };
+use bilge::prelude::*;
 use cfg_if::cfg_if;
 use core::fmt;
 use embedded_hal::{delay::DelayNs, digital::OutputPin};
@@ -74,6 +75,34 @@ impl fmt::Debug for DebugInfo {
     }
 }
 
+#[derive(Debug)]
+pub struct Finger {
+    pub pressure: u8,
+    pub x_pos: u16, // X position.
+    pub y_pos: u16, // Y position.
+    pub status: u8, // Touch(0x06) or lift.
+    pub id: u8,     // Finger ID.
+}
+
+#[derive(Debug)]
+pub struct TouchData {
+    pub fingers: [Finger; 5],
+    pub key_report_flag: u8,
+    pub finger_number: u8,
+}
+
+impl From<FingerEntry> for Finger {
+    fn from(entry: FingerEntry) -> Self {
+        Finger {
+            pressure: entry.pressure(),
+            x_pos: u16::from_be_bytes([entry.x_pos_high(), entry.x_pos_low().into()]),
+            y_pos: u16::from_be_bytes([entry.y_pos_high(), entry.y_pos_low().into()]),
+            status: entry.status().into(),
+            id: entry.id().into(),
+        }
+    }
+}
+
 const I2C_ADDR: SevenBitAddress = 0x1a;
 const CST328_RESET_DURATION_LOW_MS: u32 = 10; // TRST: Actually 0.1 ms per datasheet.
 const CST328_RESET_DURATION_HIGH_MS: u32 = 300; // TRON: Initialization time after reset.
@@ -84,6 +113,16 @@ macro_rules! map_info_register {
             .try_into()
             .expect("Buffer overflow mapping struct");
         <$type>::from(u32::from_le_bytes(chunk))
+    }};
+}
+
+macro_rules! map_finger {
+    ($buffer:expr, $offset:expr, $type:ty) => {{
+        const SIZE: usize = 5;
+        let chunk: [u8; SIZE] = $buffer[$offset..$offset + SIZE]
+            .try_into()
+            .expect("Buffer overflow mapping struct");
+        <$type>::from(u40::from_le_bytes(chunk))
     }};
 }
 
@@ -176,6 +215,36 @@ impl<I2C: I2cBound> Cst328<I2C> {
     /// Will return `Err` upon I2C error.
     pub async fn ping(&mut self) -> Result<(), Error<I2C::Error>> {
         self.i2c.write(I2C_ADDR, &[]).await.map_err(Error::I2c)
+    }
+
+    pub async fn read_touch_data(&mut self) -> Result<TouchData, Error<I2C::Error>> {
+        const NUM_READ_BYTES: usize = 0xD01A - 0xD000 + 1;
+        let mut response = [0u8; NUM_READ_BYTES];
+
+        // The first three registers are contiguous and can be read in a single transaction.
+        let addr = (Register::Info1 as u16).to_be_bytes();
+        self.i2c
+            .write_read(I2C_ADDR, &addr, &mut response)
+            .await
+            .map_err(Error::I2c)?;
+
+        if response[6] != 0xAB {
+            return Err(Error::InvalidData);
+        }
+        let touch_data = TouchData {
+            fingers: [
+                map_finger!(response, 0, FingerEntry).into(),
+                // Skip 2 bytes between finger 1 and 2.
+                map_finger!(response, 7, FingerEntry).into(),
+                map_finger!(response, 12, FingerEntry).into(),
+                map_finger!(response, 17, FingerEntry).into(),
+                map_finger!(response, 22, FingerEntry).into(),
+            ],
+            key_report_flag: response[7] >> 4,
+            finger_number: response[7] & 0x0F,
+        };
+
+        Ok(touch_data)
     }
 }
 
