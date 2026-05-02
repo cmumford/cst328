@@ -83,6 +83,15 @@ const I2C_ADDR: SevenBitAddress = 0x1a;
 const CST328_RESET_DURATION_LOW_MS: u32 = 10; // TRST: Actually 0.1 ms per datasheet.
 const CST328_RESET_DURATION_HIGH_MS: u32 = 300; // TRON: Initialization time after reset.
 
+macro_rules! map_struct {
+    ($buffer:expr, $offset:expr, $type:ty) => {{
+        let chunk: [u8; 4] = $buffer[$offset..$offset + 4]
+            .try_into()
+            .expect("Buffer overflow mapping struct");
+        <$type>::from(u32::from_le_bytes(chunk))
+    }};
+}
+
 #[derive(Debug)]
 pub enum Error<E: HalError> {
     I2c(E),
@@ -138,6 +147,46 @@ impl<I2C: I2cBound> Cst328<I2C> {
             .map_err(Error::I2c)?;
 
         Ok(u32::from_be_bytes(response))
+    }
+
+    pub async fn read_debug_info_new(&mut self) -> Result<DebugInfo, Error<I2C::Error>> {
+        let mut response = [0u8; 3 * core::mem::size_of::<u32>()];
+
+        // The first three registers are contiguous and can be read in a single transaction.
+        let addr = (Register::Info1 as u16).to_be_bytes();
+        self.i2c
+            .write_read(I2C_ADDR, &addr, &mut response)
+            .await
+            .map_err(Error::I2c)?;
+        let info1 = map_struct!(response, 0, Info1);
+        let resolutions = map_struct!(response, 4, Resolutions);
+        let info3 = map_struct!(response, 8, Info3);
+
+        let addr = (Register::ChipInfo as u16).to_be_bytes();
+        self.i2c
+            .write_read(I2C_ADDR, &addr, &mut response)
+            .await
+            .map_err(Error::I2c)?;
+        let chip_info = map_struct!(response, 0, ChipInfo);
+        let firmware_version = map_struct!(response, 4, FirmwareVersion);
+        let firmware_checksum = map_struct!(response, 8, FirmwareChecksum);
+
+        // if info3.firmware_checksum() != 0xCACA {
+        //     return Err(Error::InvalidData);
+        // }
+        Ok(DebugInfo {
+            key_num: info1.key_num(),
+            rx_num: info1.rx_num(),
+            tx_num: info1.tx_num(),
+            resolutions,
+            boot_timer: info3.boot_timer(),
+            chip_type: chip_info.ic_type(),
+            project_id: chip_info.project_id(),
+            chip_info,
+            firmware_version,
+            firmware_checksum: (firmware_checksum.high() as u32) << 16
+                | (firmware_checksum.low() as u32),
+        })
     }
 
     pub async fn read_debug_info(&mut self) -> Result<DebugInfo, Error<I2C::Error>> {

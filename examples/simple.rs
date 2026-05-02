@@ -71,7 +71,11 @@ fn main() -> ! {
         Err(e) => info!("Failed to enter debug info mode: {e:?}"),
     }
     match dev.read_debug_info() {
-        Ok(debug_info) => info!("{debug_info:?}"),
+        Ok(debug_info) => info!("Old: {debug_info:?}"),
+        Err(e) => info!("Failed to read Debug Info: {e:?}"),
+    }
+    match dev.read_debug_info_new() {
+        Ok(debug_info) => info!("New: {debug_info:?}"),
         Err(e) => info!("Failed to read Debug Info: {e:?}"),
     }
     match dev.set_mode(Mode::Normal) {
