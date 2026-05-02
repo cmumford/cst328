@@ -137,18 +137,6 @@ impl<I2C: I2cBound> Cst328<I2C> {
         self.write_reg(mode.into()).await
     }
 
-    async fn read_reg(&mut self, reg_addr: Register) -> Result<u32, Error<I2C::Error>> {
-        let addr = (reg_addr as u16).to_be_bytes();
-        let mut response = [0u8; 4];
-
-        self.i2c
-            .write_read(I2C_ADDR, &addr, &mut response)
-            .await
-            .map_err(Error::I2c)?;
-
-        Ok(u32::from_be_bytes(response))
-    }
-
     pub async fn read_debug_info_new(&mut self) -> Result<DebugInfo, Error<I2C::Error>> {
         let mut response = [0u8; 3 * core::mem::size_of::<u32>()];
 
