@@ -1,7 +1,6 @@
 use crate::registers::{
     ChipInfo, FirmwareChecksum, FirmwareVersion, Info1, Info3, Register, Resolutions,
 };
-use bilge::prelude::*;
 use cfg_if::cfg_if;
 use core::fmt;
 use embedded_hal::{delay::DelayNs, digital::OutputPin};
@@ -51,9 +50,7 @@ pub struct DebugInfo {
     pub rx_num: u8,
     pub tx_num: u8,
     pub resolutions: Resolutions,
-    pub boot_timer: u16,
-    pub chip_type: u16,
-    pub project_id: u16,
+    pub info3: Info3,
     pub chip_info: ChipInfo,
     pub firmware_version: FirmwareVersion,
     pub firmware_checksum: u32,
@@ -66,9 +63,7 @@ impl fmt::Debug for DebugInfo {
             .field("rx_num", &self.rx_num)
             .field("tx_num", &self.tx_num)
             .field("resolutions", &self.resolutions)
-            .field("boot_timer", &format_args!("0x{:04X}", self.boot_timer))
-            .field("chip_type", &format_args!("0x{:04X}", self.chip_type))
-            .field("project_id", &self.project_id)
+            .field("info3", &self.info3)
             .field("firmware_version", &self.firmware_version)
             .field("chip_info", &self.chip_info)
             .field(
@@ -147,7 +142,7 @@ impl<I2C: I2cBound> Cst328<I2C> {
             .await
             .map_err(Error::I2c)?;
         let info1 = map_struct!(response, 0, Info1);
-        let resolutions = map_struct!(response, 4, Resolutions);
+        let resolutions: Resolutions = map_struct!(response, 4, Resolutions);
         let info3 = map_struct!(response, 8, Info3);
 
         let addr = (Register::ChipInfo as u16).to_be_bytes();
@@ -159,32 +154,6 @@ impl<I2C: I2cBound> Cst328<I2C> {
         let firmware_version = map_struct!(response, 4, FirmwareVersion);
         let firmware_checksum = map_struct!(response, 8, FirmwareChecksum);
 
-        // if info3.firmware_checksum() != 0xCACA {
-        //     return Err(Error::InvalidData);
-        // }
-        Ok(DebugInfo {
-            key_num: info1.key_num(),
-            rx_num: info1.rx_num(),
-            tx_num: info1.tx_num(),
-            resolutions,
-            boot_timer: info3.boot_timer(),
-            chip_type: chip_info.ic_type(),
-            project_id: chip_info.project_id(),
-            chip_info,
-            firmware_version,
-            firmware_checksum: (firmware_checksum.high() as u32) << 16
-                | (firmware_checksum.low() as u32),
-        })
-    }
-
-    pub async fn read_debug_info(&mut self) -> Result<DebugInfo, Error<I2C::Error>> {
-        let info1 = self.read_info1().await?;
-        let resolutions = self.read_info2().await?;
-        let info3 = self.read_info3().await?;
-        let chip_info = self.read_info4().await?;
-        let firmware_version = self.read_firmware_version().await?;
-        let firmware_checksum = self.read_firmware_checksum().await?;
-
         if info3.firmware_checksum() != 0xCACA {
             return Err(Error::InvalidData);
         }
@@ -193,44 +162,12 @@ impl<I2C: I2cBound> Cst328<I2C> {
             rx_num: info1.rx_num(),
             tx_num: info1.tx_num(),
             resolutions,
-            boot_timer: info3.boot_timer(),
-            chip_type: chip_info.ic_type(),
-            project_id: chip_info.project_id(),
+            info3,
             chip_info,
             firmware_version,
-            firmware_checksum: (firmware_checksum.high() as u32) << 16
-                | (firmware_checksum.low() as u32),
+            firmware_checksum: u32::from(firmware_checksum.high()) << 16
+                | u32::from(firmware_checksum.low()),
         })
-    }
-
-    async fn read_info1(&mut self) -> Result<Info1, Error<I2C::Error>> {
-        let raw = self.read_reg(Register::Info1).await?;
-        Ok(Info1::from(u32::new(raw)))
-    }
-
-    async fn read_info2(&mut self) -> Result<Resolutions, Error<I2C::Error>> {
-        let raw = self.read_reg(Register::Resolutions).await?;
-        Ok(Resolutions::from(u32::new(raw)))
-    }
-
-    async fn read_info3(&mut self) -> Result<Info3, Error<I2C::Error>> {
-        let raw = self.read_reg(Register::Info3).await?;
-        Ok(Info3::from(u32::new(raw)))
-    }
-
-    async fn read_info4(&mut self) -> Result<ChipInfo, Error<I2C::Error>> {
-        let raw = self.read_reg(Register::ChipInfo).await?;
-        Ok(ChipInfo::from(u32::new(raw)))
-    }
-
-    async fn read_firmware_version(&mut self) -> Result<FirmwareVersion, Error<I2C::Error>> {
-        let raw = self.read_reg(Register::FirmwareVersion).await?;
-        Ok(FirmwareVersion::from(u32::new(raw)))
-    }
-
-    async fn read_firmware_checksum(&mut self) -> Result<FirmwareChecksum, Error<I2C::Error>> {
-        let raw = self.read_reg(Register::FirmwareChecksum).await?;
-        Ok(FirmwareChecksum::from(u32::new(raw)))
     }
 
     /// # Errors

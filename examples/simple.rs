@@ -15,7 +15,7 @@ use esp_hal::{
     main,
     time::{Duration, Instant, Rate},
 };
-use log::{LevelFilter, info};
+use log::{LevelFilter, error, info};
 
 // This creates a default app-descriptor required by the esp-idf bootloader.
 // For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
@@ -60,27 +60,23 @@ fn main() -> ! {
     let mut delay = Delay::new();
     match cst328::reset(&mut rst_pin, &mut delay) {
         Ok(()) => info!("Reset OK"),
-        Err(e) => info!("Reset failed: {e:?}"),
+        Err(e) => error!("Reset failed: {e:?}"),
     }
     match dev.ping() {
         Ok(()) => info!("Ping OK"),
-        Err(e) => info!("Ping failed: {e:?}"),
+        Err(e) => error!("Ping failed: {e:?}"),
     }
     match dev.set_mode(Mode::DebugInfo) {
         Ok(()) => info!("Entered debug info mode"),
-        Err(e) => info!("Failed to enter debug info mode: {e:?}"),
-    }
-    match dev.read_debug_info() {
-        Ok(debug_info) => info!("Old: {debug_info:?}"),
-        Err(e) => info!("Failed to read Debug Info: {e:?}"),
+        Err(e) => error!("Failed to enter debug info mode: {e:?}"),
     }
     match dev.read_debug_info_new() {
         Ok(debug_info) => info!("New: {debug_info:?}"),
-        Err(e) => info!("Failed to read Debug Info: {e:?}"),
+        Err(e) => error!("Failed to read Debug Info: {e:?}"),
     }
     match dev.set_mode(Mode::Normal) {
         Ok(()) => info!("Entered normal mode"),
-        Err(e) => info!("Failed to enter normal mode: {e:?}"),
+        Err(e) => error!("Failed to enter normal mode: {e:?}"),
     }
     loop {
         info!("Waiting...");
