@@ -164,10 +164,21 @@ impl<I2C: I2cBound> Cst328<I2C> {
         self.i2c.write(I2C_ADDR, &reg).await.map_err(Error::I2c)
     }
 
+    /// Set the mode of the CST328.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` upon I2C error.
     pub async fn set_mode(&mut self, mode: Mode) -> Result<(), Error<I2C::Error>> {
         self.write_reg(mode.into()).await
     }
 
+    /// Read and return the debug information register contents of the CST328.
+    /// The device must be in debug mode for this to work.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` upon I2C error.
     pub async fn read_debug_info_new(&mut self) -> Result<DebugInfo, Error<I2C::Error>> {
         let mut response = [0u8; 3 * core::mem::size_of::<u32>()];
 
@@ -223,7 +234,7 @@ impl<I2C: I2cBound> Cst328<I2C> {
     ///
     /// # Errors
     ///
-    /// Will return `Err` upon I2C error or Error::InvalidData which *may* occur
+    /// Will return `Err` upon I2C error or `Error::InvalidData` which *may* occur
     /// if the sensor has never been touched.
     pub async fn read_touch_data(&mut self) -> Result<TouchData, Error<I2C::Error>> {
         const NUM_READ_BYTES: usize = 0xD01A - 0xD000 + 1;
@@ -255,6 +266,11 @@ impl<I2C: I2cBound> Cst328<I2C> {
         Ok(touch_data)
     }
 
+    /// Read and return a single finger entry.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` upon I2C error.
     pub async fn read_finger(&mut self, index: usize) -> Result<Finger, Error<I2C::Error>> {
         if index >= 5 {
             return Err(Error::InvalidData);
@@ -268,10 +284,15 @@ impl<I2C: I2cBound> Cst328<I2C> {
             .await
             .map_err(Error::I2c)?;
 
-        Ok(map_finger!(response, 0, FingerEntry).into())
+        Ok(map_finger!(response, /*offset=*/ 0, FingerEntry).into())
     }
 }
 
+/// Reset the CST328.
+///
+/// # Errors
+///
+/// Will return `Err` upon I2C error.
 pub fn reset<O, D>(rst: &mut O, delay: &mut D) -> Result<(), O::Error>
 where
     O: OutputPin,
