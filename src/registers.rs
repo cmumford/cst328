@@ -4,6 +4,7 @@ use core::fmt;
 #[allow(dead_code)]
 #[repr(u16)]
 pub enum Register {
+    Finger1 = 0xD000,
     Info1 = 0xD1F4,
     Resolutions = 0xD1F8,
     Info3 = 0xD1FC,
@@ -93,10 +94,10 @@ pub struct FirmwareChecksum {
 #[derive(FromBits, DebugBits, PartialEq)]
 pub struct FingerEntry {
     pub pressure: u8,
-    pub y_pos_low: u4,  // Low 4 bits of Y position.
-    pub x_pos_low: u4,  // Low 4 bits of X position.
-    pub y_pos_high: u8, // High 8 bits of Y position.
-    pub x_pos_high: u8, // High 8 bits of X position.
+    pub y_pos_low: u4,  // Low 4 bits of X position.
+    pub x_pos_low: u4,  // Low 4 bits of Y position.
+    pub y_pos_high: u8, // High 8 bits (out of 12) of Y position.
+    pub x_pos_high: u8, // High 8 bits (out of 12) of X position.
     pub status: u4,     // Touch(0x06) or lift.
     pub id: u4,         // Finger ID.
 }

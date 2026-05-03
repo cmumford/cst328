@@ -94,11 +94,11 @@ pub struct TouchData {
 impl From<FingerEntry> for Finger {
     fn from(entry: FingerEntry) -> Self {
         Finger {
-            pressure: entry.pressure(),
-            x_pos: u16::from_be_bytes([entry.x_pos_high(), entry.x_pos_low().into()]),
-            y_pos: u16::from_be_bytes([entry.y_pos_high(), entry.y_pos_low().into()]),
-            status: entry.status().into(),
-            id: entry.id().into(),
+            pressure: entry.pressure().as_u8(),
+            x_pos: (entry.x_pos_high().as_u16() << 4) | entry.x_pos_low().as_u16(),
+            y_pos: (entry.y_pos_high().as_u16() << 4) | entry.y_pos_low().as_u16(),
+            status: entry.status().as_u8(),
+            id: entry.id().as_u8(),
         }
     }
 }
@@ -121,7 +121,7 @@ macro_rules! map_finger {
         let chunk: [u8; 5] = $buffer[$offset..$offset + 5]
             .try_into()
             .expect("Buffer overflow mapping struct");
-        <$type>::from(u40::from_le_bytes(chunk))
+        <$type>::from(u40::from_be_bytes(chunk))
     }};
 }
 
@@ -225,10 +225,9 @@ impl<I2C: I2cBound> Cst328<I2C> {
         const NUM_READ_BYTES: usize = 0xD01A - 0xD000 + 1;
         let mut response = [0u8; NUM_READ_BYTES];
 
-        // The first three registers are contiguous and can be read in a single transaction.
-        let addr = (Register::Info1 as u16).to_be_bytes();
+        let reg_addr = (Register::Finger1 as u16).to_be_bytes();
         self.i2c
-            .write_read(I2C_ADDR, &addr, &mut response)
+            .write_read(I2C_ADDR, &reg_addr, &mut response)
             .await
             .map_err(Error::I2c)?;
 
