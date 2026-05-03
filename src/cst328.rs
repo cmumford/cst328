@@ -219,6 +219,12 @@ impl<I2C: I2cBound> Cst328<I2C> {
         FINGER_OFFSETS[index]
     }
 
+    /// Read and return all finger entries.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` upon I2C error or Error::InvalidData which *may* occur
+    /// if the sensor has never been touched.
     pub async fn read_touch_data(&mut self) -> Result<TouchData, Error<I2C::Error>> {
         const NUM_READ_BYTES: usize = 0xD01A - 0xD000 + 1;
         let mut response = [0u8; NUM_READ_BYTES];
@@ -230,6 +236,8 @@ impl<I2C: I2cBound> Cst328<I2C> {
             .map_err(Error::I2c)?;
 
         if response[6] != 0xAB {
+            // If the sensor has never been touched this can happen. It is not always
+            // an indication of an error.
             return Err(Error::InvalidData);
         }
         let touch_data = TouchData {
