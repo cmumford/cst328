@@ -118,8 +118,7 @@ macro_rules! map_info_register {
 
 macro_rules! map_finger {
     ($buffer:expr, $offset:expr, $type:ty) => {{
-        const SIZE: usize = 5;
-        let chunk: [u8; SIZE] = $buffer[$offset..$offset + SIZE]
+        let chunk: [u8; 5] = $buffer[$offset..$offset + 5]
             .try_into()
             .expect("Buffer overflow mapping struct");
         <$type>::from(u40::from_le_bytes(chunk))
@@ -217,6 +216,11 @@ impl<I2C: I2cBound> Cst328<I2C> {
         self.i2c.write(I2C_ADDR, &[]).await.map_err(Error::I2c)
     }
 
+    const fn get_finger_offset(index: usize) -> u16 {
+        const FINGER_OFFSETS: [u16; 5] = [0, 7, 12, 17, 22];
+        FINGER_OFFSETS[index]
+    }
+
     pub async fn read_touch_data(&mut self) -> Result<TouchData, Error<I2C::Error>> {
         const NUM_READ_BYTES: usize = 0xD01A - 0xD000 + 1;
         let mut response = [0u8; NUM_READ_BYTES];
@@ -233,18 +237,33 @@ impl<I2C: I2cBound> Cst328<I2C> {
         }
         let touch_data = TouchData {
             fingers: [
-                map_finger!(response, 0, FingerEntry).into(),
-                // Skip 2 bytes between finger 1 and 2.
-                map_finger!(response, 7, FingerEntry).into(),
-                map_finger!(response, 12, FingerEntry).into(),
-                map_finger!(response, 17, FingerEntry).into(),
-                map_finger!(response, 22, FingerEntry).into(),
+                map_finger!(response, Self::get_finger_offset(0) as usize, FingerEntry).into(),
+                map_finger!(response, Self::get_finger_offset(1) as usize, FingerEntry).into(),
+                map_finger!(response, Self::get_finger_offset(2) as usize, FingerEntry).into(),
+                map_finger!(response, Self::get_finger_offset(3) as usize, FingerEntry).into(),
+                map_finger!(response, Self::get_finger_offset(4) as usize, FingerEntry).into(),
             ],
             key_report_flag: response[7] >> 4,
             finger_number: response[7] & 0x0F,
         };
 
         Ok(touch_data)
+    }
+
+    pub async fn read_finger(&mut self, index: usize) -> Result<Finger, Error<I2C::Error>> {
+        if index >= 5 {
+            return Err(Error::InvalidData);
+        }
+
+        let mut response = [0u8; core::mem::size_of::<FingerEntry>()];
+        let reg_addr: u16 = 0xD000 + Self::get_finger_offset(index);
+        let addr = reg_addr.to_be_bytes();
+        self.i2c
+            .write_read(I2C_ADDR, &addr, &mut response)
+            .await
+            .map_err(Error::I2c)?;
+
+        Ok(map_finger!(response, 0, FingerEntry).into())
     }
 }
 
