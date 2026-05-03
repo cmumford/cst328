@@ -77,10 +77,9 @@ impl fmt::Debug for DebugInfo {
 
 #[derive(Debug)]
 pub struct Finger {
-    pub pressure: u8,
+    pub down: bool, // True if the finger is down, false if it's lifted.
     pub x_pos: u16, // X position.
     pub y_pos: u16, // Y position.
-    pub status: u8, // Touch(0x06) or lift.
     pub id: u8,     // Finger ID.
 }
 
@@ -94,10 +93,9 @@ pub struct TouchData {
 impl From<FingerEntry> for Finger {
     fn from(entry: FingerEntry) -> Self {
         Finger {
-            pressure: entry.pressure().as_u8(),
+            down: entry.status().as_u8() == 0x06,
             x_pos: (entry.x_pos_high().as_u16() << 4) | entry.x_pos_low().as_u16(),
             y_pos: (entry.y_pos_high().as_u16() << 4) | entry.y_pos_low().as_u16(),
-            status: entry.status().as_u8(),
             id: entry.id().as_u8(),
         }
     }
