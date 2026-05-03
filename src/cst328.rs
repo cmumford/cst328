@@ -86,8 +86,8 @@ pub struct Finger {
 #[derive(Debug)]
 pub struct TouchData {
     pub fingers: [Finger; 5],
-    pub key_report_flag: u8,
-    pub finger_number: u8,
+    pub key_report_flag: u8, // Always 0x80.
+    pub finger_count: u8,    // The number of fingers currently touching the sensor.
 }
 
 impl From<FingerEntry> for Finger {
@@ -240,8 +240,8 @@ impl<I2C: I2cBound> Cst328<I2C> {
                 map_finger!(response, Self::get_finger_offset(3) as usize, FingerEntry).into(),
                 map_finger!(response, Self::get_finger_offset(4) as usize, FingerEntry).into(),
             ],
-            key_report_flag: response[7] >> 4,
-            finger_number: response[7] & 0x0F,
+            key_report_flag: response[5] >> 4,
+            finger_count: response[5] & 0x0F,
         };
 
         Ok(touch_data)
