@@ -1,4 +1,8 @@
 # cst328
+[![CI](https://github.com/cmumford/cst328/actions/workflows/ci.yml/badge.svg)](https://github.com/cmumford/cst328/actions/workflows/ci.yml)
+[![Crates.io](https://img.shields.io/crates/v/cst328.svg)](https://crates.io/crates/cst328)
+[![docs.rs](https://docs.rs/cst328/badge.svg)](https://docs.rs/cst328)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A pure Rust driver for the CST328 touch controller device
 ([datasheet](docs/CST328-DataSheet-V2.2.pdf)). This driver supports the
