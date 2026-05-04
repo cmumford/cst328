@@ -25,6 +25,7 @@ Add this to your `Cargo.toml`:
 ```toml
 [dependencies]
 cst328 = { version = "0.1", features = ["use_sync"] }   # or "use_async"
+```
 
 ## Example
 
