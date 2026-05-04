@@ -15,7 +15,7 @@ jobs:
       - name: Install Rust + RISC-V target
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: riscv32imc-unknown-none-elf
+          targets: riscv32imac-unknown-none-elf
 
       - uses: Swatinem/rust-cache@v2
 
@@ -29,15 +29,15 @@ jobs:
         run: cargo clippy --features esp32c6,use_async -- -D clippy::pedantic
 
       - name: Check (sync)
-        run: cargo check --target riscv32imc-unknown-none-elf --features esp32c6,use_sync
+        run: cargo check --target riscv32imac-unknown-none-elf --features esp32c6,use_sync
 
       - name: Check (async)
-        run: cargo check --target riscv32imc-unknown-none-elf --features esp32c6,use_async
+        run: cargo check --target riscv32imac-unknown-none-elf --features esp32c6,use_async 
 
       - name: Build examples
         run: |
-          cargo build --example simple --features esp32c6,use_sync --target riscv32imc-unknown-none-elf
-          cargo build --example simple_async --features esp32c6,use_async --target riscv32imc-unknown-none-elf
+          cargo build --example simple --release --features esp32c6,use_sync --target riscv32imac-unknown-none-elf
+          cargo build --example simple_async --release --features esp32c6,use_async --target riscv32imac-unknown-none-elf
 
       - name: Docs
         run: cargo doc --no-deps --features esp32c6,use_async
