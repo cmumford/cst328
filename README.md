@@ -12,6 +12,16 @@ This library supports either (but **not both**) synchronous (blocking) or
 asynchronous (non-blocking) API's. One and only one of the following
 features must be defined: `use_sync` or `use_async`.
 
+A Rust `no_std` driver for the CST328 capacitive touch controller.
+
+## Installation
+
+Add this to your `Cargo.toml`:
+
+```toml
+[dependencies]
+cst328 = { version = "0.1", features = ["use_sync"] }   # or "use_async"
+
 ## Example
 
 ```rs
