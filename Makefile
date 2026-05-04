@@ -88,3 +88,7 @@ check:
 .PHONY: machete
 machete:
 	cargo machete --with-metadata
+
+.PHONY: publish
+publish:
+	cargo publish --features=use_async
