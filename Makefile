@@ -83,7 +83,7 @@ clippy:
 
 .PHONY: check
 check:
-	cargo check --target riscv32imac-unknown-none-elf --features esp32c6,use_sync --target riscv32imc-unknown-none-elf
+	cargo check --features esp32c6,use_sync --target riscv32imac-unknown-none-elf
 
 .PHONY: machete
 machete:
