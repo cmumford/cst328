@@ -8,6 +8,10 @@ readme = "README.md"
 keywords = ["touch", "driver", "hynitron"]
 license = "MIT"
 
+[package.metadata.docs.rs]
+features = ["esp32c6", "use_async"]
+rustdoc-args = ["--cfg", "docsrs"]
+
 [dependencies]
 bilge = "0.3.0"
 cfg-if = "1.0.4"
