@@ -86,5 +86,10 @@ async fn main(_spawner: Spawner) -> ! {
     loop {
         info!("Waiting...");
         Timer::after(embassy_time::Duration::from_millis(1_000)).await;
+
+        match dev.read_touch_data().await {
+            Ok(touch_data) => info!("Touch Data: {touch_data:?}"),
+            Err(e) => error!("Failed to read Touch Data: {e:?}"),
+        }
     }
 }
