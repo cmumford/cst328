@@ -22,21 +22,21 @@ jobs:
         run: cargo fmt --all -- --check
 
       - name: Clippy (sync)
-        run: cargo clippy --all-targets --features use_sync -- -D warnings
+        run: cargo clippy --all-targets --features esp32c6,use_sync -- -D warnings
 
       - name: Clippy (async)
-        run: cargo clippy --all-targets --features use_async -- -D warnings
+        run: cargo clippy --all-targets --features esp32c6,use_async -- -D warnings
 
       - name: Check (sync)
-        run: cargo check --all-targets --features use_sync --target riscv32imc-unknown-none-elf
+        run: cargo check --all-targets --features esp32c6,use_sync --target riscv32imc-unknown-none-elf
 
       - name: Check (async)
-        run: cargo check --all-targets --features use_async --target riscv32imc-unknown-none-elf
+        run: cargo check --all-targets --features esp32c6,use_async --target riscv32imc-unknown-none-elf
 
       - name: Build examples
         run: |
-          cargo build --example simple --features use_sync --target riscv32imc-unknown-none-elf
-          cargo build --example simple_async --features use_async --target riscv32imc-unknown-none-elf
+          cargo build --example simple --features esp32c6,use_sync --target riscv32imc-unknown-none-elf
+          cargo build --example simple_async --features esp32c6,use_async --target riscv32imc-unknown-none-elf
 
       - name: Docs
-        run: cargo doc --no-deps --features use_async
+        run: cargo doc --no-deps --features esp32c6,use_async
