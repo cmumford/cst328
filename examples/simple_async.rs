@@ -37,7 +37,7 @@ async fn main(_spawner: Spawner) -> ! {
         if #[cfg(feature = "esp32c6")] {
             let sda_gpio = peripherals.GPIO15;
             let scl_gpio = peripherals.GPIO23;
-            let rst_gpio = peripherals.GPIO11;
+            let rst_gpio = peripherals.GPIO3;
         } else {
             let sda_gpio = peripherals.GPIO9;
             let scl_gpio = peripherals.GPIO8;
