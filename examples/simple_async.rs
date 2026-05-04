@@ -13,7 +13,9 @@ use esp_hal::{
     clock::CpuClock,
     gpio::{Level, Output, OutputConfig},
     i2c::master::I2c,
+    interrupt::software::SoftwareInterruptControl,
     time::Rate,
+    timer::timg::TimerGroup,
 };
 use log::{LevelFilter, error, info};
 
@@ -32,6 +34,11 @@ async fn main(_spawner: Spawner) -> ! {
 
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
     let peripherals = esp_hal::init(config);
+
+    // Start RTOS
+    let timg0 = TimerGroup::new(peripherals.TIMG0);
+    let software_interrupt = SoftwareInterruptControl::new(peripherals.SW_INTERRUPT);
+    esp_rtos::start(timg0.timer0, software_interrupt.software_interrupt0);
 
     cfg_if::cfg_if! {
         if #[cfg(feature = "esp32c6")] {
