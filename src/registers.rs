@@ -1,26 +1,45 @@
 use bilge::prelude::*;
 use core::fmt;
 
+/// The register addresses for the CST328.
 #[allow(dead_code)]
 #[repr(u16)]
 pub enum Register {
+    /// The first finger's register.
     Finger1 = 0xD000,
+    /// Debug register for: Key, TX and RX numbers
     Info1 = 0xD1F4,
+    /// Debug register for: X/Y resolutions
     Resolutions = 0xD1F8,
+    /// Debug register for: Firmware checksum, boot loader window time
     Info3 = 0xD1FC,
+    /// Debug register for: Chip type and Project ID
     ChipInfo = 0xD204,
+    /// Debug register for: Firmware version
     FirmwareVersion = 0xD208,
+    /// Debug register for: Firmware checksum
     FirmwareChecksum = 0xD20C,
+    /// Debug register for: enter debug info mode.
     ModeDebugInfo = 0xD101,
+    /// Debug register for: enter reset mode.
     ModeReset = 0xD102,
+    /// Debug register for: enter redo calibration mode.
     ModeRedoCalibration = 0xD104,
+    /// Debug register for: enter deep sleep mode.
     ModeDeepSleep = 0xD105,
+    /// Debug register for: enter debug points mode.
     ModeDebugPoints = 0xD108,
+    /// Debug register for: enter normal mode.
     ModeNormal = 0xD109,
+    /// Debug register for: enter debug raw data mode.
     ModeDebugRawData = 0xD10A,
+    /// Debug register for: enter debug write mode.
     ModeDebugWrite = 0xD10B,
+    /// Debug register for: enter debug calibration mode.
     ModeDebugCalibration = 0xD10C,
+    /// Debug register for: enter debug diff mode.
     ModeDebugDiff = 0xD10D,
+    /// Debug register for: enter factory mode.
     ModeFactory = 0xD119,
 }
 

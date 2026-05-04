@@ -14,6 +14,7 @@ cfg_if! {
     }
 }
 
+/// The mode of the CST328. The CST328, after reset, starts out in `Normal` mode.
 pub enum Mode {
     DebugInfo,
     Reset,
@@ -46,6 +47,7 @@ impl From<Mode> for Register {
     }
 }
 
+/// Contains the contents of the debug registers.
 pub struct DebugInfo {
     pub key_num: u8,
     pub rx_num: u8,
@@ -75,24 +77,40 @@ impl fmt::Debug for DebugInfo {
     }
 }
 
+/// An X/Y position.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Position {
-    pub x: u16, // X position.
-    pub y: u16, // Y position.
+    /// X position.
+    pub x: u16,
+
+    /// Y position.
+    pub y: u16,
 }
 
+/// A finger on the touch sensor.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Finger {
-    pub down: bool,    // True if the finger is down, false if it's lifted.
-    pub pos: Position, // Finger position.
-    pub id: u8,        // Finger ID.
+    /// True if the finger is down, false if it's lifted.
+    pub down: bool,
+
+    /// Finger position.
+    pub pos: Position,
+
+    /// Finger ID.
+    pub id: u8,
 }
 
+/// The state of all five touch fingers and related information.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TouchData {
+    /// The five fingers.
     pub fingers: [Finger; 5],
-    pub key_report_flag: u8, // Always 0x80.
-    pub finger_count: u8,    // The number of fingers currently touching the sensor.
+
+    /// Always 0x80.
+    pub key_report_flag: u8,
+
+    /// The number of fingers currently touching the sensor.
+    pub finger_count: u8,
 }
 
 impl From<FingerEntry> for Finger {
@@ -130,6 +148,7 @@ macro_rules! map_finger {
     }};
 }
 
+/// Error type for CST328 operations.
 #[derive(Debug)]
 pub enum Error<E: HalError> {
     I2c(E),
@@ -147,13 +166,14 @@ cfg_if! {
     }
 }
 
+/// A struct representing an instance of the CST328 driver.
 #[maybe_async_cfg::maybe(
     idents(Cst328),
     sync(feature = "use_sync"),
     async(feature = "use_async")
 )]
 pub struct Cst328<I2C> {
-    i2c: I2C,
+    i2c: I2C, // The I2C interface to use for all communication with the CST328.
 }
 
 #[maybe_async_cfg::maybe(
@@ -162,10 +182,29 @@ pub struct Cst328<I2C> {
     async(feature = "use_async")
 )]
 impl<I2C: I2cBound> Cst328<I2C> {
+    /// Create a new instance of the CST328 driver.
+    ///
+    /// The returned instance may be used immediately.
+    ///
+    /// # Arguments
+    ///
+    /// * `i2c` - The I2C interface to use for all communication with the CST328.
+    ///
+    /// # Returns
+    ///
+    /// A new instance of the CST328 driver.
     pub fn new(i2c: I2C) -> Self {
         Self { i2c }
     }
 
+    /// Write a the register value to the CST328.
+    ///
+    /// Think of this as calling a function with no data. For example, to set a mode,
+    /// you would call this function with the appropriate mode register.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` upon I2C error.
     async fn write_reg(&mut self, reg_addr: Register) -> Result<(), Error<I2C::Error>> {
         let reg = (reg_addr as u16).to_be_bytes();
         self.i2c.write(I2C_ADDR, &reg).await.map_err(Error::I2c)
@@ -181,7 +220,8 @@ impl<I2C: I2cBound> Cst328<I2C> {
     }
 
     /// Read and return the debug information register contents of the CST328.
-    /// The device must be in debug mode for this to work.
+    ///
+    /// **Note**: The device must be in debug mode for this to work.
     ///
     /// # Errors
     ///
@@ -225,6 +265,10 @@ impl<I2C: I2cBound> Cst328<I2C> {
         })
     }
 
+    /// Do an I2C ping to the CST328 at address 0x1A.
+    ///
+    /// This is a simple way to check if the device is reachable on the I2C bus.
+    ///
     /// # Errors
     ///
     /// Will return `Err` upon I2C error.
@@ -239,10 +283,15 @@ impl<I2C: I2cBound> Cst328<I2C> {
 
     /// Read and return all finger entries.
     ///
+    /// Will return the state of the touch device (all five fingers) wether they
+    /// are down or lifted.
+    ///
     /// # Errors
     ///
-    /// Will return `Err` upon I2C error or `Error::InvalidData` which *may* occur
-    /// if the sensor has never been touched.
+    /// Will return `Err` upon I2C error or `Error::InvalidData`.
+    ///
+    /// **Note**: `Error::InvalidData` *may* be return if the sensor has never been
+    /// touched.
     pub async fn read_touch_data(&mut self) -> Result<TouchData, Error<I2C::Error>> {
         const NUM_READ_BYTES: usize = 0xD01A - 0xD000 + 1;
         let mut response = [0u8; NUM_READ_BYTES];
@@ -299,7 +348,7 @@ impl<I2C: I2cBound> Cst328<I2C> {
 ///
 /// # Errors
 ///
-/// Will return `Err` upon I2C error.
+/// Will return `Err` upon GPIO error.
 pub fn reset<O, D>(rst: &mut O, delay: &mut D) -> Result<(), O::Error>
 where
     O: OutputPin,

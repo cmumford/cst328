@@ -1,1 +1,32 @@
-# A pure Rust driver for the CST328 Touch Controller IC
+# cst328
+
+A pure Rust driver for the CST328 touch controller device
+([datasheet](docs/CST328-DataSheet-V2.2.pdf)). This driver supports the
+following:
+
+* Various hardware via [`embedded-hal`](https://github.com/rust-embedded/embedded-hal)
+* A `no_std` environment
+* both sync and async API's
+
+This library supports either (but **not both**) synchronous (blocking) or
+asynchronous (non-blocking) API's. One and only one of the following
+features must be defined: `use_sync` or `use_async`.
+
+## Example
+
+```rs
+use cst328::{Cst328, Mode};
+use log::{info, error};
+
+let i2c = // Create I2C device.
+let mut dev = Cst328::new(i2c);
+match dev.read_finger(0).await {
+    Ok(finger) => info!("Touch Data: {finger:?}"),
+    Err(e) => error!("Failed to read finger data: {e:?}"),
+}
+```
+
+See the full working examples in the project `///examples` directory. These
+were written for the ESP32 chip family and depend on the esp-hal, but only
+these samples have a specific platform dependency. They should be easily
+ported to any platform supported by `embedded-hal` or `embedded-hal-async`.
