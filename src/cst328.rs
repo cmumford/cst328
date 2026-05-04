@@ -75,15 +75,20 @@ impl fmt::Debug for DebugInfo {
     }
 }
 
-#[derive(Debug)]
-pub struct Finger {
-    pub down: bool, // True if the finger is down, false if it's lifted.
-    pub x_pos: u16, // X position.
-    pub y_pos: u16, // Y position.
-    pub id: u8,     // Finger ID.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Position {
+    pub x: u16, // X position.
+    pub y: u16, // Y position.
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Finger {
+    pub down: bool,    // True if the finger is down, false if it's lifted.
+    pub pos: Position, // Finger position.
+    pub id: u8,        // Finger ID.
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TouchData {
     pub fingers: [Finger; 5],
     pub key_report_flag: u8, // Always 0x80.
@@ -94,8 +99,10 @@ impl From<FingerEntry> for Finger {
     fn from(entry: FingerEntry) -> Self {
         Finger {
             down: entry.status().as_u8() == 0x06,
-            x_pos: (entry.x_pos_high().as_u16() << 4) | entry.x_pos_low().as_u16(),
-            y_pos: (entry.y_pos_high().as_u16() << 4) | entry.y_pos_low().as_u16(),
+            pos: Position {
+                x: (entry.x_pos_high().as_u16() << 4) | entry.x_pos_low().as_u16(),
+                y: (entry.y_pos_high().as_u16() << 4) | entry.y_pos_low().as_u16(),
+            },
             id: entry.id().as_u8(),
         }
     }
