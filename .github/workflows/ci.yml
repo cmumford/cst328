@@ -23,10 +23,15 @@ jobs:
         run: cargo fmt --all -- --check
 
       - name: Clippy (sync)
-        run: cargo clippy --features esp32c6,use_sync -- -D clippy::pedantic
+        run: |
+          cargo clippy --features esp32c6,use_sync -- -D clippy::pedantic
+          cargo clippy --example simple --release --features esp32c6,use_sync --target riscv32imac-unknown-none-elf -- -D clippy::pedantic
 
       - name: Clippy (async)
-        run: cargo clippy --features esp32c6,use_async -- -D clippy::pedantic
+        run: |
+          cargo clippy --features esp32c6,use_async -- -D clippy::pedantic
+          cargo clippy --example simple_async --release --features esp32c6,use_async --target riscv32imac-unknown-none-elf -- -D clippy::pedantic
+
 
       - name: Check (sync)
         run: cargo check --target riscv32imac-unknown-none-elf --features esp32c6,use_sync
