@@ -28,6 +28,7 @@ fn panic(_: &core::panic::PanicInfo) -> ! {
     loop {}
 }
 
+#[allow(clippy::used_underscore_binding)] // Embassy muse implicitly use _spawner.
 #[esp_rtos::main]
 async fn main(_spawner: Spawner) -> ! {
     esp_println::logger::init_logger(LevelFilter::Info);
