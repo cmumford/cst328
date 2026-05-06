@@ -80,6 +80,8 @@ docs:
 .PHONY: clippy
 clippy:
 	cargo clippy --features=esp32s3,use_async -- -D clippy::pedantic
+	cargo clippy --example simple_async --release --features esp32c6,use_async --target riscv32imac-unknown-none-elf -- -D clippy::pedantic
+	cargo clippy --example simple --release --features esp32c6,use_sync --target riscv32imac-unknown-none-elf -- -D clippy::pedantic
 
 .PHONY: check
 check:
