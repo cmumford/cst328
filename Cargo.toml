@@ -1,6 +1,6 @@
 [package]
 name = "cst328"
-version = "1.0.2"
+version = "1.0.3"
 edition = "2024"
 authors = ["Chris Mumford <cmumford@cmumford.com>"]
 description = "Pure Rust CST328 touch driver (blocking + async support)"
@@ -22,4 +22,3 @@ maybe-async-cfg = "0.2.5"
 [features]
 use_async = ["embedded-hal-async"]
 use_sync = []
-
