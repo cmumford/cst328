@@ -5,7 +5,7 @@ default: build
 
 .PHONY: clean
 clean:
-	cargo clean
+	cargo clean && cd examples/esp32 && cargo clean
 
 .PHONY: build
 build:
