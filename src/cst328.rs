@@ -365,6 +365,8 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::Cst328;
+    use embedded_hal_mock::eh1::i2c::{Mock as I2cMock, Transaction as I2cTransaction};
 
     #[test]
     fn test_map_finger() {
@@ -384,5 +386,53 @@ mod tests {
         assert_eq!(finger.x_pos_low(), u4::new(0xa));
         assert_eq!(finger.y_pos_low(), u4::new(0xb));
         assert_eq!(finger.pressure(), u8::new(67));
+    }
+
+    #[test]
+    fn test_read_finger_1() {
+        let response = vec![
+            0x16, // Two nibbles: finger ID and status.
+            0xfa, // High 8 bits of X coordinate.
+            0xfe, // High 8 bits of Y coordinate.
+            0xab, // two nibbles: low 4 bits of X and Y coordinates.
+            0x42, // Finger pressure.
+        ];
+        let expectations = [I2cTransaction::write_read(0x1a, vec![0xD0, 0x00], response)];
+
+        let i2c = I2cMock::new(&expectations);
+
+        let mut driver = Cst328::new(i2c);
+        let finger = driver.read_finger(0).unwrap();
+
+        assert_eq!(finger.down, true);
+        assert_eq!(finger.pos.x, 0xFAA);
+        assert_eq!(finger.pos.y, 0xFEB);
+        assert_eq!(finger.id, 1);
+
+        driver.i2c.done();
+    }
+
+    #[test]
+    fn test_read_finger_2() {
+        let response = vec![
+            0x16, // Two nibbles: finger ID and status.
+            0xfa, // High 8 bits of X coordinate.
+            0xfe, // High 8 bits of Y coordinate.
+            0xab, // two nibbles: low 4 bits of X and Y coordinates.
+            0x42, // Finger pressure.
+        ];
+        let expectations = [I2cTransaction::write_read(0x1a, vec![0xD0, 0x07], response)];
+
+        let i2c = I2cMock::new(&expectations);
+
+        let mut driver = Cst328::new(i2c);
+        let finger = driver.read_finger(1).unwrap();
+
+        assert_eq!(finger.down, true);
+        assert_eq!(finger.pos.x, 0xFAA);
+        assert_eq!(finger.pos.y, 0xFEB);
+        assert_eq!(finger.id, 1);
+
+        driver.i2c.done();
     }
 }
