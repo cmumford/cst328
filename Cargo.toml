@@ -6,8 +6,10 @@ authors = ["Chris Mumford <cmumford@cmumford.com>"]
 description = "Pure Rust CST328 touch driver (blocking + async support)"
 readme = "README.md"
 keywords = ["touch", "driver", "hynitron"]
+categories = ["embedded", "no-std", "hardware-support"]
 license = "MIT"
 homepage = "https://github.com/cmumford/cst328"
+repository = "https://github.com/cmumford/cst328"
 
 [package.metadata.docs.rs]
 features = ["use_async"]
