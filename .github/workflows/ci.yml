@@ -55,5 +55,8 @@ jobs:
           cargo build --example simple --release --features esp32c6,use_sync --target riscv32imac-unknown-none-elf
           cargo build --example simple_async --release --features esp32c6,use_async --target riscv32imac-unknown-none-elf
 
+      - name: Run tests
+        run: cargo +stable test --features=test --verbose
+
       - name: Docs
         run: cargo doc --no-deps --features use_async

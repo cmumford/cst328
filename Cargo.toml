@@ -22,3 +22,4 @@ maybe-async-cfg = "0.2.5"
 [features]
 use_async = ["embedded-hal-async"]
 use_sync = []
+test = ["use_sync"]

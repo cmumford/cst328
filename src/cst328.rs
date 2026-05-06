@@ -360,3 +360,29 @@ where
     delay.delay_ms(CST328_RESET_DURATION_HIGH_MS);
     Ok(())
 }
+
+#[cfg(all(test, not(target_os = "none")))]
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_map_finger() {
+        let data: [u8; 5] = [
+            0x16, // Two nibbles: finger ID and status.
+            0xfa, // High 8 bits of X coordinate.
+            0xfe, // High 8 bits of Y coordinate.
+            0xab, // two nibbles: low 4 bits of X and Y coordinates.
+            67,   // Finger pressure.
+        ];
+        let finger: FingerEntry = map_finger!(data, 0 as usize, FingerEntry).into();
+
+        assert_eq!(finger.id(), u4::new(0x1));
+        assert_eq!(finger.status(), u4::new(0x6));
+        assert_eq!(finger.x_pos_high(), u8::new(0xfa));
+        assert_eq!(finger.y_pos_high(), u8::new(0xfe));
+        assert_eq!(finger.x_pos_low(), u4::new(0xa));
+        assert_eq!(finger.y_pos_low(), u4::new(0xb));
+        assert_eq!(finger.pressure(), u8::new(67));
+    }
+}

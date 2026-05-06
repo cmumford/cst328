@@ -11,6 +11,10 @@ clean:
 build:
 	cargo build --features=use_async
 
+.PHONY: test
+test:
+	cargo +stable test --features=test
+
 .PHONY: docs
 docs:
 	cargo doc --no-deps --document-private-items --open --features=use_async
