@@ -7,3 +7,9 @@ cargo fmt --all -- --check
 make check
 make clippy
 make
+
+cd examples/esp32
+cargo fmt --all -- --check
+make check
+make clippy
+make
