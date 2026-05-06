@@ -332,7 +332,7 @@ impl<I2C: I2cBound> Cst328<I2C> {
             return Err(Error::InvalidData);
         }
 
-        let mut response = [0u8; core::mem::size_of::<FingerEntry>()];
+        let mut response = [0u8; 5];
         let reg_addr: u16 = Register::Finger1 as u16 + Self::get_finger_offset(index);
         let addr = reg_addr.to_be_bytes();
         self.i2c
