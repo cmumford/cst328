@@ -16,8 +16,6 @@ This library supports either (but **not both**) synchronous (blocking) or
 asynchronous (non-blocking) API's. One and only one of the following
 features must be defined: `use_sync` or `use_async`.
 
-A Rust `no_std` driver for the CST328 capacitive touch controller.
-
 ## Installation
 
 Add this to your `Cargo.toml`:
@@ -41,7 +39,4 @@ match dev.read_finger(0).await {
 }
 ```
 
-See the full working examples in the project `///examples` directory. These
-were written for the ESP32 chip family and depend on the esp-hal, but only
-these samples have a specific platform dependency. They should be easily
-ported to any platform supported by `embedded-hal` or `embedded-hal-async`.
+See the full working examples in the project `///examples` directory.
