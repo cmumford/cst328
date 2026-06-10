@@ -3,7 +3,7 @@
 mod cst328;
 mod registers;
 
-pub use cst328::{DebugInfo, Error, Finger, Mode, TouchData, reset};
+pub use cst328::{reset, DebugInfo, Error, Finger, Mode, TouchData};
 
 #[cfg(not(any(feature = "use_sync", feature = "use_async")))]
 compile_error!(
