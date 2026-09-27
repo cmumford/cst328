@@ -16,8 +16,8 @@ features = ["use_async"]
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
-bilge = "0.3.0"
-cfg-if = "1.0.4"
+bilge = "0.5.0"
+cfg-if = "1.0.5"
 embedded-hal = "1.0"
 embedded-hal-async = { version = "1.0", optional = true }
 maybe-async-cfg = "0.2.5"
