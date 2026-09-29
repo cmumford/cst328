@@ -31,6 +31,10 @@ check:
 machete:
 	cargo machete --with-metadata
 
+.PHONY: fmt
+fmt:
+	cargo fmt --all -- --check
+
 .PHONY: publish
 publish:
 	cargo publish --features=use_async
